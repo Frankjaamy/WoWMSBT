@@ -3551,6 +3551,7 @@ local function InitSavedVariables()
 		-- Create custom font and sounds tables.
 		savedMedia.fonts = {}
 		savedMedia.sounds = {}
+		savedMedia.sound_group = {}
 	end
 
 	-- Allow public access to saved variables.

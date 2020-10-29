@@ -21,6 +21,8 @@ local L = MikSBT.translations
 local string_sub = string.sub
 local string_len = string.len
 
+-- Local Functions
+local SplitString = MikSBT.SplitString
 
 -------------------------------------------------------------------------------
 -- Constants.
@@ -96,34 +98,71 @@ end
 -- Registers a sound.
 -- See the included API.html file for usage info.
 -- ****************************************************************************
-local function RegisterSound(soundNameAndGroup, soundPath)
+local function RegisterSound(soundName, soundGroup, soundPath)
 	-- Don't do anything if the sound name or sound path is invalid.
 	-- Allow non-string entries for soundPath as of Patch 8.2.0.
-	if (type(soundNameAndGroup) ~= "string") then return end
+	if (type(soundName) ~= "string") then return end
 	-- Ensure that the custom file path is either a number (FileDataID)
 	-- Or a string that begins with "Interface" and ends with either ".mp3" or ".ogg"
 	local soundPathLower = string.lower(soundPath)
-	if (not soundPath or soundNameAndGroup == "" or soundPath == "" or (type(soundPath) == "string" and ((string.find(soundPathLower, "interface") or 0) ~= 1 or (not string.find(soundPathLower, ".mp3") and not string.find(soundPathLower, ".ogg"))))) then
+	if (not soundPath or soundName == "" or soundPath == "" or (type(soundPath) == "string" and ((string.find(soundPathLower, "interface") or 0) ~= 1 or (not string.find(soundPathLower, ".mp3") and not string.find(soundPathLower, ".ogg"))))) then
 		return
 	end
 
-	-- Get the soundName and its soundGroup, it uses '-' to separate
-	local sound_table = split(soundNameAndGroup, '-')
-	local soundName = sound_table[1]
-	local soundGroup = sound_table[2]
-	
 	-- Register with MSBT.
 	sounds[soundName] = soundPath
 
-	if soundGroup ~= nil then
-		if sound_group[soundGroup] == nil then
-			sound_group[soundGroup] = {}
-		end
-		sound_group[soundGroup][#sound_group[soundGroup] + 1] = soundName
+	if sound_group[soundGroup] == nil then
+		sound_group[soundGroup] = {}
 	end
-	
+	sound_group[soundGroup][soundName] = true
+
 	-- Register with shared media.
-	SML:Register("sound", soundName, soundPath)
+	
+	local combined = soundName.."-"..soundGroup
+	SML:Register("sound", combined, soundPath)
+end
+
+-- ****************************************************************************
+-- Given a sound name, return its sound group.
+-- ****************************************************************************
+local function GetSoundGroup(soundName)
+	local name_group_table={}
+		SplitString(soundName, "-", name_group_table)
+	if #name_group_table == 2 then
+		return name_group_table[2]
+	end
+
+	for groupName, inGroupSounds in pairs(sound_group) do
+		if inGroupSounds[soundName] ~= nil then
+			return groupName
+		end
+	end
+	return "DefaultGroup"
+end
+
+
+local function Randomchoice(t) --Selects a random item from a table
+    local keys = {}
+    for key, value in pairs(t) do
+        keys[#keys+1] = key --Store keys in another table
+    end
+    random_key = keys[math.random(1, #keys)]
+    return random_key
+end
+
+
+
+-- ****************************************************************************
+-- Given a sound group, return a random sound name and sound path
+-- ****************************************************************************
+local function GetRandomSoundFromGroup(soundGroupName)
+	if sound_group[soundGroupName] ~= nil then
+		local soundName = Randomchoice(sound_group[soundGroupName])
+		local soundPath = sounds[soundName]
+		return soundName, soundPath
+	end
+	return nil, nil
 end
 
 
@@ -158,7 +197,11 @@ end
 local function OnVariablesInitialized()
 	-- Register custom fonts and sounds.
 	for fontName, fontPath in pairs(MSBTProfiles.savedMedia.fonts) do RegisterFont(fontName, fontPath) end
-	for soundName, soundPath in pairs(MSBTProfiles.savedMedia.sounds) do RegisterSound(soundName, soundPath) end
+	for soundName, soundPath in pairs(MSBTProfiles.savedMedia.sounds) do 
+		local name_group_table={}
+		SplitString(soundName, "-", name_group_table)
+		RegisterSound(name_group_table[1], name_group_table[2], soundPath) 
+	end
 end
 
 
@@ -168,7 +211,9 @@ end
 
 -- Register default fonts and sounds.
 for fontName, fontPath in pairs(DEFAULT_FONT_FILES) do RegisterFont(fontName, fontPath) end
-for soundName, soundPath in pairs(DEFAULT_SOUND_FILES) do RegisterSound(soundName, soundPath) end
+for soundName, soundPath in pairs(DEFAULT_SOUND_FILES) do 
+	RegisterSound(soundName, "DefaultGroup", soundPath) 
+end
 
 -- Register the currently available fonts and sounds in shared media with MSBT.
 for index, fontName in pairs(SML:List("font")) do fonts[fontName] = SML:Fetch("font", fontName) end
@@ -187,11 +232,13 @@ SML.RegisterCallback("MSBTSharedMedia", "LibSharedMedia_Registered", SMLRegister
 -- Protected Variables.
 module.fonts = fonts
 module.sounds = sounds
-module.soundGroup = soundGroup
+module.sound_group = sound_group
 
 -- Protected Functions.
 module.RegisterFont				= RegisterFont
 module.RegisterSound			= RegisterSound
+module.GetSoundGroup            = GetSoundGroup
+module.GetRandomSoundFromGroup  = GetRandomSoundFromGroup
 module.IterateFonts				= IterateFonts
 module.IterateSounds			= IterateSounds
 module.OnVariablesInitialized	= OnVariablesInitialized

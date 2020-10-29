@@ -402,7 +402,8 @@ local function MediaTab_AddCustomSound(settings)
 	local soundGroup = settings.thirdInputText
 	if (type(soundPath) == "string" and not string.find(soundPath, "\\", 1, true) and not string.find(soundPath, "/", 1, true)) then soundPath = DEFAULT_SOUND_PATH .. soundPath end
 
-	MSBTProfiles.savedMedia.sounds[soundName] = soundPath
+	local combined = soundName.."-"..soundGroup
+	MSBTProfiles.savedMedia.sounds[combined] = soundPath
 	MSBTMedia.RegisterSound(soundName, soundGroup, soundPath)
 	tabFrames.media.controls.customSoundsListbox:AddItem(soundName, true)
 end
@@ -516,14 +517,20 @@ local function MediaTab_CreateCustomSoundLine(this)
 	local fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	fontString:SetPoint("LEFT", frame, "LEFT", 10, 0)
 	fontString:SetJustifyH("LEFT")
-	fontString:SetWidth(100)
+	fontString:SetWidth(50)
 	frame.soundNameFontString = fontString
 
-
-	-- Sound path label.
+	-- Sound group label.
 	fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	fontString:SetPoint("LEFT", frame.soundNameFontString, "RIGHT", 10, 0)
 	fontString:SetPoint("RIGHT", button, "LEFT", -10, 0)
+	fontString:SetJustifyH("LEFT")
+	frame.soundGroupFontString = fontString
+
+	-- Sound path label.
+	fontString = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	fontString:SetPoint("LEFT", frame.soundGroupFontString, "RIGHT", 10, 0)
+	fontString:SetPoint("RIGHT", button, "LEFT", -20, 0)
 	fontString:SetJustifyH("LEFT")
 	frame.soundPathFontString = fontString
 
@@ -543,6 +550,9 @@ local function MediaTab_DisplayCustomSoundLine(this, line, key, isSelected)
 
 	soundPath = string.gsub(soundPath, DEFAULT_SOUND_PATH, "")
 	line.soundPathFontString:SetText(soundPath)
+
+	soundGroup = MSBTMedia.GetSoundGroup(key)
+	line.soundGroupFontString:SetText(soundGroup)
 end
 
 

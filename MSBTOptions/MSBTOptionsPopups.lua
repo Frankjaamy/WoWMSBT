@@ -31,7 +31,7 @@ local ConvertType = MSBTTriggers.ConvertType
 -- Local references to various variables for faster access.
 local fonts = MSBTMedia.fonts
 local sounds = MSBTMedia.sounds
-
+local sound_group = MSBTMedia.sound_group
 
 -------------------------------------------------------------------------------
 -- Private constants.
@@ -2096,16 +2096,16 @@ end
 local function PopulateEventSounds(selectedSound)
 	local controls = popupFrames.eventFrame.controls
 
-	local isCustomSound = selectedSound and true
+	local isCustomSound = nil
 	controls.soundDropdown:Clear()
-	for soundName in pairs(sounds) do
-		if (soundName ~= NONE) then controls.soundDropdown:AddItem(L.SOUNDS[soundName] or soundName, soundName) end
-		if (soundName == selectedSound) then isCustomSound = nil end
+	for soundGroupName in pairs(sound_group) do
+		if (soundGroupName ~= NONE) then controls.soundDropdown:AddItem(soundGroupName, soundGroupName) end
 	end
 	controls.soundDropdown:AddItem(NONE, "")
 	controls.soundDropdown:Sort()
-	if (isCustomSound) then controls.soundDropdown:AddItem(selectedSound, selectedSound) end
-	controls.soundDropdown:SetSelectedID(selectedSound or "")
+
+	local selectedGroup = MSBTMedia.GetSoundGroup(selectedSound)
+	controls.soundDropdown:SetSelectedID(selectedGroup or "")
 end
 
 
@@ -2209,9 +2209,8 @@ local function CreateEvent()
 	button:SetPoint("LEFT", controls[#controls], "RIGHT", 10, 0)
 	button:SetClickHandler(
 		function (this)
-			local soundFile = controls.soundDropdown:GetSelectedID()
-			for soundName, soundPath in MikSBT.IterateSounds() do
-				if (soundName == soundFile) then soundFile = soundPath end
+			local soundGroupName = controls.soundDropdown:GetSelectedID()
+				return
 			end
 			--print(soundFile)
 			if (type(soundFile) == "string") then

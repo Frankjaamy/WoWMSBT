@@ -390,9 +390,14 @@ local function DisplayEvent(eventSettings, message, texturePath)
 	-- Play the event's sound file if there is one and sounds are enabled.
 	local soundFile = eventSettings.soundFile
 	if (soundFile and not currentProfile.soundsDisabled) then
-		for soundName, soundPath in MikSBT.IterateSounds() do
-			if (soundName == soundFile) then soundFile = soundPath end
+		print("Current input"..soundFile)
+		local soundGroupName = soundFile
+		local soundName, soundPath = MSBTMedia.GetRandomSoundFromGroup(soundGroupName)
+		if soundName == nil or soundPath == nil then
+			return
 		end
+		soundFile = soundPath
+
 		--print(soundFile)
 		if (type(soundFile) == "string") then
 			if (soundFile ~= "") then

@@ -58,7 +58,7 @@ local function InitTab(tabInfo)
 		local frame = tabInfo.frame
 		frame:SetParent(mainFrame)
 		frame:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 190, -78)
-		frame:SetWidth(400)
+		frame:SetWidth(600)
 		frame:SetHeight(350)
 	end
 
