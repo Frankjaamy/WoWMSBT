@@ -259,6 +259,7 @@ local function SaveInput()
 		EraseTable(returnSettings)
 		returnSettings.inputText = frame.inputEditbox:GetText()
 		returnSettings.secondInputText = frame.secondInputEditbox:GetText()
+		returnSettings.thirdInputText = frame.thirdInputEditbox:GetText()
 		returnSettings.saveArg1 = frame.saveArg1
 		frame:Hide()
 		frame.saveHandler(returnSettings)
@@ -272,7 +273,7 @@ end
 local function CreateInput()
 	local frame = CreatePopup()
 	frame:SetWidth(350)
-	frame:SetHeight(130)
+	frame:SetHeight(180)
 
 	-- Input editbox.
 	local editbox = MSBTControls.CreateEditbox(frame)
@@ -300,6 +301,18 @@ local function CreateInput()
 	editbox:SetTextChangedHandler(ValidateInput)
 	frame.secondInputEditbox = editbox
 
+	-- Third input editbox.
+	editbox = MSBTControls.CreateEditbox(frame)
+	editbox:SetPoint("TOPLEFT", frame.secondInputEditbox, "BOTTOMLEFT", 0, -10)
+	editbox:SetPoint("TOPRIGHT", frame.secondInputEditbox, "BOTTOMRIGHT", 0, -10)
+	editbox:SetEscapeHandler(
+		function (this)
+			frame:Hide()
+		end
+	)
+	editbox:SetEnterHandler(SaveInput)
+	editbox:SetTextChangedHandler(ValidateInput)
+	frame.thirdInputEditbox = editbox
 
 	-- Okay button.
 	local button = MSBTControls.CreateOptionButton(frame)
@@ -364,6 +377,18 @@ local function ShowInput(configTable)
 		frame:SetHeight(130)
 	end
 
+	editbox = frame.thirdInputEditbox
+	if(configTable.showThirdEditbox) then
+		editbox:Show()
+		editbox:SetLabel(configTable.thirdEditboxLabel)
+		editbox:SetTooltip(configTable.thirdEditboxTooltip)
+		editbox:SetText(configTable.thirdDefaultText)
+		frame:SetHeight(210)
+	else
+		editbox:SetText(nil)
+		editbox:Hide()
+		frame:SetHeight(170)
+	end
 
 	-- Configure the frame.
 	frame.showSecondEditbox = configTable.showSecondEditbox

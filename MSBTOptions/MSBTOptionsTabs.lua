@@ -399,10 +399,11 @@ end
 local function MediaTab_AddCustomSound(settings)
 	local soundName = settings.inputText
 	local soundPath = settings.secondInputText
+	local soundGroup = settings.thirdInputText
 	if (type(soundPath) == "string" and not string.find(soundPath, "\\", 1, true) and not string.find(soundPath, "/", 1, true)) then soundPath = DEFAULT_SOUND_PATH .. soundPath end
 
 	MSBTProfiles.savedMedia.sounds[soundName] = soundPath
-	MSBTMedia.RegisterSound(soundName, soundPath)
+	MSBTMedia.RegisterSound(soundName, soundGroup, soundPath)
 	tabFrames.media.controls.customSoundsListbox:AddItem(soundName, true)
 end
 
@@ -614,6 +615,11 @@ local function MediaTab_Create()
 			configTable.showSecondEditbox = true
 			configTable.secondEditboxLabel = objLocale.label
 			configTable.secondEditboxTooltip = objLocale.tooltip
+			objLocale = L.EDITBOXES["customSoundGroup"]
+			configTable.showThirdEditbox = true
+			configTable.thirdEditboxLabel = objLocale.label
+			configTable.thirdEditboxTooltip = objLocale.tooltip
+
 			configTable.validateHandler = MediaTab_ValidateCustomSound
 			configTable.saveHandler = MediaTab_AddCustomSound
 			configTable.hideHandler = MediaTab_EnableControls
