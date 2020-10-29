@@ -47,7 +47,7 @@ local SML_LANG_MASK_ALL = 255
 
 local fonts = {}
 local sounds = {}
-
+local sound_group = {}
 
 -------------------------------------------------------------------------------
 -- Font functions.
@@ -76,6 +76,17 @@ local function IterateFonts()
 	return pairs(fonts)
 end
 
+-- ****************************************************************************
+-- Splits the given string by the delimiter
+-- Returns a table
+-- ****************************************************************************
+local function split(s, delimiter)
+    result = {};
+    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+        table.insert(result, match);
+    end
+    return result;
+end
 
 -------------------------------------------------------------------------------
 -- Sound functions.
@@ -85,20 +96,32 @@ end
 -- Registers a sound.
 -- See the included API.html file for usage info.
 -- ****************************************************************************
-local function RegisterSound(soundName, soundPath)
+local function RegisterSound(soundNameAndGroup, soundPath)
 	-- Don't do anything if the sound name or sound path is invalid.
 	-- Allow non-string entries for soundPath as of Patch 8.2.0.
-	if (type(soundName) ~= "string") then return end
+	if (type(soundNameAndGroup) ~= "string") then return end
 	-- Ensure that the custom file path is either a number (FileDataID)
 	-- Or a string that begins with "Interface" and ends with either ".mp3" or ".ogg"
 	local soundPathLower = string.lower(soundPath)
-	if (not soundPath or soundName == "" or soundPath == "" or (type(soundPath) == "string" and ((string.find(soundPathLower, "interface") or 0) ~= 1 or (not string.find(soundPathLower, ".mp3") and not string.find(soundPathLower, ".ogg"))))) then
+	if (not soundPath or soundNameAndGroup == "" or soundPath == "" or (type(soundPath) == "string" and ((string.find(soundPathLower, "interface") or 0) ~= 1 or (not string.find(soundPathLower, ".mp3") and not string.find(soundPathLower, ".ogg"))))) then
 		return
 	end
 
+	-- Get the soundName and its soundGroup, it uses '-' to separate
+	local sound_table = split(soundNameAndGroup, '-')
+	local soundName = sound_table[1]
+	local soundGroup = sound_table[2]
+	
 	-- Register with MSBT.
 	sounds[soundName] = soundPath
 
+	if soundGroup ~= nil then
+		if sound_group[soundGroup] == nil then
+			sound_group[soundGroup] = {}
+		end
+		sound_group[soundGroup][#sound_group[soundGroup] + 1] = soundName
+	end
+	
 	-- Register with shared media.
 	SML:Register("sound", soundName, soundPath)
 end
@@ -164,6 +187,7 @@ SML.RegisterCallback("MSBTSharedMedia", "LibSharedMedia_Registered", SMLRegister
 -- Protected Variables.
 module.fonts = fonts
 module.sounds = sounds
+module.soundGroup = soundGroup
 
 -- Protected Functions.
 module.RegisterFont				= RegisterFont
